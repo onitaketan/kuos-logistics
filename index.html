@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUOS 倉庫別物流コスト比較ツール</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --bg3: #ededea;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #9a9a96;
+    --border: rgba(0,0,0,.12);
+    --border2: rgba(0,0,0,.22);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --ok-bg: #eaf3de; --ok-text: #3b6d11;
+    --ng-bg: #fcebeb; --ng-text: #a32d2d;
+    --warn-text: #854f0b;
+    --blue: #3266ad; --teal: #1d9e75; --amber: #ba7517;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333330;
+      --text: #f0efe8; --text2: #a8a8a2; --text3: #6e6e68;
+      --border: rgba(255,255,255,.12); --border2: rgba(255,255,255,.22);
+      --ok-bg: #1a2e10; --ok-text: #7dc956;
+      --ng-bg: #2e1010; --ng-text: #f09595;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; min-height: 100vh; }
+  .page { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { margin-bottom: 24px; border-bottom: 0.5px solid var(--border); padding-bottom: 16px; }
+  header h1 { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  header p  { font-size: 13px; color: var(--text2); }
+  label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  input[type=number] {
+    width: 100%; color: var(--text); background: var(--bg);
+    border: 0.5px solid var(--border2); border-radius: var(--radius);
+    padding: 6px 9px; font-size: 13px; font-family: inherit;
+  }
+  input[type=number]:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+  input[type=range] { width: 100%; accent-color: var(--blue); }
+  .card  { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .card2 { background: var(--bg2); border-radius: var(--radius); padding: 11px 13px; }
+  .sec   { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; }
+  hr     { border: none; border-top: 0.5px solid var(--border); margin: 18px 0; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .g3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+  .g3-param { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-bottom: 14px; }
+  .g-top { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-bottom: 12px; }
+  .dim-row { display: flex; gap: 6px; }
+  .dim-row input { flex: 1; }
+  .tsubo-g { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 5px; }
+  .tsubo-g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .tf { display: flex; flex-direction: column; gap: 3px; }
+  .tf label { font-size: 11px; margin-bottom: 0; }
+  .param-box { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 13px 14px; }
+  .param-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+  .param-row { margin-bottom: 10px; }
+  .ship-row { display: flex; align-items: center; gap: 7px; background: var(--bg2); border-radius: var(--radius); padding: 7px 9px; margin-top: 5px; }
+  .ship-lbl { font-size: 11px; color: var(--text2); flex: 1; }
+  .ship-row input { width: 76px; flex-shrink: 0; text-align: center; }
+  .ship-unit { font-size: 12px; color: var(--text3); }
+  .calc-tag { font-size: 11px; border-radius: 4px; padding: 2px 8px; display: inline-block; margin-top: 5px; color: var(--text2); background: var(--bg2); border: 0.5px solid var(--border); }
+  .sl-row { display: flex; align-items: center; gap: 12px; }
+  .sl-big { font-size: 22px; font-weight: 600; min-width: 52px; text-align: right; color: var(--text); }
+  .sl-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .wh-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-bottom: 8px; }
+  .wh-card { border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); background: var(--bg); }
+  .wh-card.winner { border: 2px solid var(--blue); }
+  .wh-head { padding: 10px 14px 9px; display: flex; align-items: center; justify-content: space-between; }
+  .wh-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .wh-star { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,.92); color: #222; }
+  .wh-body { padding: 12px 14px 14px; }
+  .cost-lbl { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+  .cost-big { font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+  .verdict { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 4px; margin: 6px 0 10px; }
+  .v-ok { background: var(--ok-bg); color: var(--ok-text); }
+  .v-ng { background: var(--ng-bg); color: var(--ng-text); }
+  .mb { display: flex; flex-direction: column; gap: 5px; }
+  .mb-r { display: flex; align-items: center; gap: 7px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .mb-l { font-size: 11px; color: var(--text2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mb-v { font-size: 12px; font-weight: 600; color: var(--text); min-width: 54px; text-align: right; }
+  .mb-tot { border-top: 0.5px solid var(--border); padding-top: 5px; margin-top: 3px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text); }
+  .per-unit { font-size: 11px; color: var(--text3); text-align: right; margin-top: 3px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .bar-name { font-size: 12px; color: var(--text2); min-width: 84px; }
+  .bar-track { flex: 1; height: 9px; background: var(--bg3); border-radius: 5px; overflow: hidden; position: relative; }
+  .bar-thresh { position: absolute; top: 0; height: 100%; width: 2px; background: #e24b4a; opacity: .8; z-index: 2; }
+  .bar-num { font-size: 13px; font-weight: 600; min-width: 62px; text-align: right; color: var(--text); }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tbl th { font-size: 11px; font-weight: 600; color: var(--text3); padding: 6px 9px; border-bottom: 0.5px solid var(--border); text-align: right; }
+  .tbl th:first-child { text-align: left; }
+  .tbl td { padding: 6px 9px; border-bottom: 0.5px solid var(--border); text-align: right; color: var(--text); }
+  .tbl td:first-child { text-align: left; color: var(--text2); }
+  .tbl tr.grand td { font-weight: 700; border-top: 0.5px solid var(--border2); }
+  .tc { color: var(--ok-text) !important; font-weight: 700 !important; }
+  .tn { color: var(--ng-text) !important; }
+  .note { font-size: 13px; color: var(--text2); background: var(--bg2); border-radius: var(--radius); padding: 11px 15px; line-height: 1.75; margin-bottom: 16px; }
+  .hl { color: var(--text); font-weight: 600; }
+  .ok-c { color: var(--ok-text); font-weight: 600; }
+  .ng-c { color: var(--ng-text); font-weight: 600; }
+  .warn-c { color: var(--warn-text); font-weight: 600; }
+  footer { text-align: center; font-size: 11px; color: var(--text3); margin-top: 32px; }
+  @media (max-width: 640px) {
+    .wh-grid, .g3, .g3-param, .g-top { grid-template-columns: 1fr; }
+    .cost-big { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>KUOS 倉庫別物流コスト比較ツール</h1>
+    <p>楽ロジ（RSL）/ 三芳倉庫・本社 / 矢野倉庫　1ケースあたりコスト比較（税別）</p>
+  </header>
+  <div class="sec">1ケースあたりコスト 比較（税別）</div>
+  <div class="wh-grid" id="whGrid"></div>
+  <div id="barWrap" style="margin-bottom:8px"></div>
+  <div class="note" id="noteBox">計算中…</div>
+  <hr>
+  <div class="sec">共通設定</div>
+  <div class="g-top">
+    <div class="card2"><label>月間販売数（ケース / 月）</label><input type="number" id="ms" value="10000" min="1" oninput="go()"></div>
+    <div class="card2"><label>判定閾値（円 / ケース・税別）</label><input type="number" id="thresh" value="850" oninput="go()"></div>
+    <div class="card2"><label>ケース寸法 L × W × H（cm）</label><div class="dim-row"><input type="number" id="dL" value="41" oninput="go()"><input type="number" id="dW" value="28" oninput="go()"><input type="number" id="dH" value="24" oninput="go()"></div></div>
+  </div>
+  <div class="card2" style="margin-bottom:14px">
+    <label style="margin-bottom:8px">在庫滞留日数（全倉庫共通）</label>
+    <div class="sl-row">
+      <input type="range" id="dwell" min="1" max="45" step="1" value="10" oninput="go()">
+      <span class="sl-big" id="dwellOut">10</span><span style="font-size:13px;color:var(--text2)"> 日</span>
+    </div>
+    <div class="sl-hint" id="slHint">—</div>
+  </div>
+  <div class="sec">倉庫別コスト設定</div>
+  <div class="g3-param">
+    <div class="param-box">
+      <div class="param-title" style="color:var(--blue)">楽ロジ（RSL）</div>
+      <div class="param-row">
+        <label>横持ち費（日田 → 楽ロジ）</label>
+        <div class="tsubo-g">
+          <div class="tf"><label>送料合計（円）</label><input type="number" id="tc0f" value="30000" oninput="go()"></div>
+          <div class="tf"><label>ケース数</label><input type="number" id="tc0q" value="960" oninput="go()"></div>
+        </div>
+        <span class="calc-tag" id="tc0calc">—</span>
+      </div>
+      <div class="param-row"><label>出荷作業料 ＋ 資材（円 / ケース）</label><input type="number" id="op0" value="91" oninput="go()"></div>
+      <div class="param-row">
+        <label>出荷送料（RSL 全国一律）</label>
+        <div class="ship-row"><span class="ship-lbl">日本郵便</span><input type="number" id="sh0" value="599" oninput="go()"><span class="ship-unit">円</span></div>
+      </div>
+      <div class="param-row"><label>保管料（体積自動計算）</label><span class="calc-tag" id="storRSL">—</span></div>
+    </div>
+    <div class="param-box">
+      <div class="param-title" style="color:var(--teal)">三芳倉庫 / 本社</div>
+      <div class="param-row">
+        <label>入庫送料</label>
+        <div class="tsubo-g">
+          <div class="tf"><label>送料合計（円）</label><input type="number" id="ib1f" value="5000" oninput="go()"></div>
+          <div class="tf"><label>ケース数</label><input type="number" id="ib1q" value="300" oninput="go()"></div>
+        </div>
+        <span class="calc-tag" id="ib1calc">—</span>
+      </div>
+      <div class="param-row"><label>入出庫費（円 / ケース）</label><input type="number" id="io1" value="0" oninput="go()"></div>
+      <div class="param-row">
+        <label>出荷送料（佐川急便・関東）</label>
+        <div class="ship-row"><span class="ship-lbl">佐川急便</span><input type="number" id="sh1" value="800" oninput="go()"><span class="ship-unit">円</span></div>
+      </div>
+      <div class="param-row">
+        <label>保管費（坪ベース）</label>
+        <div class="tsubo-g">
+          <div class="tf"><label>月額（円）</label><input type="number" id="sf1f" value="100000" oninput="go()"></div>
+          <div class="tf"><label>坪数</label><input type="number" id="sf1t" value="100" oninput="go()"></div>
+        </div>
+        <div class="tsubo-g3">
+          <div class="tf"><label>ケース / 段</label><input type="number" id="cs1c" value="60" oninput="go()"></div>
+          <div class="tf"><label>積み段数</label><input type="number" id="cs1s" value="3" oninput="go()"></div>
+          <div class="tf"><label>P / 坪</label><input type="number" id="pd1" value="2" oninput="go()"></div>
+        </div>
+        <span class="calc-tag" id="storMIY">—</span>
+      </div>
+    </div>
+    <div class="param-box">
+      <div class="param-title" style="color:var(--amber)">矢野倉庫</div>
+      <div class="param-row">
+        <label>入庫送料</label>
+        <div class="tsubo-g">
+          <div class="tf"><label>送料合計（円）</label><input type="number" id="ib2f" value="10000" oninput="go()"></div>
+          <div class="tf"><label>ケース数</label><input type="number" id="ib2q" value="960" oninput="go()"></div>
+        </div>
+        <span class="calc-tag" id="ib2calc">—</span>
+      </div>
+      <div class="param-row"><label>入出庫費（円 / ケース）</label><input type="number" id="io2" value="50" oninput="go()"></div>
+      <div class="param-row">
+        <label>出荷送料（佐川急便・関東）</label>
+        <div class="ship-row"><span class="ship-lbl">佐川急便</span><input type="number" id="sh2" value="800" oninput="go()"><span class="ship-unit">円</span></div>
+      </div>
+      <div class="param-row">
+        <label>保管費（坪ベース）</label>
+        <div class="tsubo-g">
+          <div class="tf"><label>月額（円）</label><input type="number" id="sf2f" value="4500" oninput="go()"></div>
+          <div class="tf"><label>坪数</label><input type="number" id="sf2t" value="1" oninput="go()"></div>
+        </div>
+        <div class="tsubo-g3">
+          <div class="tf"><label>ケース / 段</label><input type="number" id="cs2c" value="60" oninput="go()"></div>
+          <div class="tf"><label>積み段数</label><input type="number" id="cs2s" value="3" oninput="go()"></div>
+          <div class="tf"><label>P / 坪</label><input type="number" id="pd2" value="2" oninput="go()"></div>
+        </div>
+        <span class="calc-tag" id="storYNO">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="sec">費用内訳（円 / ケース・税別）</div>
+  <div class="card" style="overflow-x:auto">
+    <table class="tbl" id="dtbl"></table>
+  </div>
+  <footer>KUOS 物流コスト比較ツール　─　数値はすべて税別・概算です</footer>
+</div>
+<script>
+const WH=[
+  {name:'楽ロジ（RSL）',short:'楽ロジ',   color:'#3266ad'},
+  {name:'三芳 / 本社',  short:'三芳/本社', color:'#1d9e75'},
+  {name:'矢野倉庫',     short:'矢野倉庫',  color:'#ba7517'},
+];
+const DOTS=['#555','#888780','#3266ad','#e27b39'];
+function v(id){return +document.getElementById(id).value||0}
+function fmt(n){return Math.round(n).toLocaleString()}
+function f1(n){return (Math.round(n*10)/10).toFixed(1)}
+function f2(n){return (Math.round(n*100)/100).toFixed(2)}
+function storPerCase(D,fee,tsubo,cc,cs,pt){
+  const cpP=(cc||60)*(cs||3),ppT=pt||1;
+  return tsubo>0?D*(fee/tsubo)/(30*cpP*ppT):0;
+}
+function go(){
+  const ms=v('ms'),thresh=v('thresh');
+  const D=+document.getElementById('dwell').value||10;
+  const vol=v('dL')*v('dW')*v('dH');
+  const storMonth=7.5*(vol/1000);
+  const daily=ms/30;
+  document.getElementById('dwellOut').textContent=D;
+  const rslTr=v('tc0q')>0?v('tc0f')/v('tc0q'):0;
+  document.getElementById('tc0calc').textContent='→ ¥'+f2(rslTr)+'/ケース（固定按分）';
+  const rslStor=storMonth*D/30;
+  const rslQ=Math.max(1,Math.round(daily*D*2));
+  document.getElementById('storRSL').textContent='¥'+f1(rslStor)+'/ケース（'+D+'日 | 体積'+fmt(vol)+'cm³）';
+  document.getElementById('slHint').textContent='楽ロジ: 滞留'+D+'日 → 適正持込 '+fmt(rslQ)+'ケース / 月'+f1(ms/rslQ)+'回 | 月販'+fmt(ms)+'ケース';
+  const m1ib=v('ib1q')>0?v('ib1f')/v('ib1q'):0;
+  const m1st=storPerCase(D,v('sf1f'),v('sf1t'),v('cs1c'),v('cs1s'),v('pd1'));
+  document.getElementById('ib1calc').textContent='→ ¥'+f2(m1ib)+'/ケース';
+  document.getElementById('storMIY').textContent='¥'+f2(m1st)+'/ケース（坪¥'+fmt(v('sf1t')>0?Math.round(v('sf1f')/v('sf1t')):0)+' × '+D+'日）';
+  const m2ib=v('ib2q')>0?v('ib2f')/v('ib2q'):0;
+  const m2st=storPerCase(D,v('sf2f'),v('sf2t'),v('cs2c'),v('cs2s'),v('pd2'));
+  document.getElementById('ib2calc').textContent='→ ¥'+f2(m2ib)+'/ケース';
+  document.getElementById('storYNO').textContent='¥'+f2(m2st)+'/ケース（坪¥'+fmt(v('sf2t')>0?Math.round(v('sf2f')/v('sf2t')):0)+' × '+D+'日）';
+  const costs=[
+    {inbound:rslTr, io:v('op0'), stor:rslStor, ship:v('sh0'), labels:['横持ち（¥'+fmt(v('tc0f'))+'/'+fmt(v('tc0q'))+'ケース）','作業料＋資材','保管費（体積）','日本郵便']},
+    {inbound:m1ib,  io:v('io1'), stor:m1st,    ship:v('sh1'), labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
+    {inbound:m2ib,  io:v('io2'), stor:m2st,    ship:v('sh2'), labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
+  ];
+  costs.forEach(c=>{c.total=c.inbound+c.io+c.stor+c.ship});
+  const totals=costs.map(c=>c.total);
+  const minT=Math.min(...totals);
+  let ch='';
+  costs.forEach((c,i)=>{
+    const ok=c.total<=thresh,isMin=Math.abs(c.total-minT)<0.05;
+    const diff=Math.abs(c.total-thresh);
+    ch+=`<div class="wh-card${isMin?' winner':''}">
+      <div class="wh-head" style="background:${WH[i].color}">
+        <span class="wh-name">${WH[i].name}</span>
+        ${isMin?'<span class="wh-star">★ 最安</span>':''}
+      </div>
+      <div class="wh-body">
+        <div class="cost-lbl">1ケースあたり物流費（税別）</div>
+        <div class="cost-big" style="color:${ok?'var(--text)':'var(--ng-text)'}">¥${fmt(Math.round(c.total))}</div>
+        <div class="verdict ${ok?'v-ok':'v-ng'}">${ok?'✓ 閾値内　余裕¥'+fmt(Math.round(diff)):'✗ 超過 +¥'+fmt(Math.round(diff))}</div>
+        <div class="mb">
+          ${[c.ship,c.io,c.inbound,c.stor].map((val,j)=>`
+          <div class="mb-r">
+            <div class="dot" style="background:${DOTS[j]}"></div>
+            <div class="mb-l">${[c.labels[3],c.labels[1],c.labels[0],c.labels[2]][j]}</div>
+            <div class="mb-v">¥${f2(val)}</div>
+          </div>`).join('')}
+          <div class="mb-tot"><span>合計</span><span>¥${fmt(Math.round(c.total))}</span></div>
+        </div>
+        <div class="per-unit">1本 ¥${f1(c.total/24)}　|　月間総額 ¥${fmt(Math.round(c.total*ms))}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('whGrid').innerHTML=ch;
+  const maxT=Math.max(...totals,thresh)*1.08;
+  const tp=thresh/maxT*100;
+  let bh='';
+  costs.forEach((c,i)=>{
+    const segs=[c.ship,c.io,c.inbound,c.stor];
+    const segC=['#555','#888780',WH[i].color,'#e27b39'];
+    const ok=c.total<=thresh;
+    let acc=0,fills='';
+    segs.forEach((s,si)=>{
+      const p=s/maxT*100;
+      fills+=`<div style="position:absolute;top:0;left:${acc}%;width:${p}%;height:100%;background:${ok?segC[si]:'#e24b4a'};opacity:${ok?1:.75}"></div>`;
+      acc+=p;
+    });
+    bh+=`<div class="bar-row">
+      <div class="bar-name">${WH[i].short}</div>
+      <div class="bar-track" style="overflow:visible">
+        <div style="position:absolute;inset:0;border-radius:5px;overflow:hidden">${fills}</div>
+        <div class="bar-thresh" style="left:${tp}%"></div>
+      </div>
+      <div class="bar-num" style="color:${ok?'var(--text)':'var(--ng-text)'}">¥${fmt(Math.round(c.total))}</div>
+    </div>`;
+  });
+  document.getElementById('barWrap').innerHTML=bh;
+  const rows=[
+    {l:'出荷送料',              vs:costs.map(c=>c.ship)},
+    {l:'入庫 / 横持ち（按分）', vs:costs.map(c=>c.inbound)},
+    {l:'入出庫費 / 作業・資材', vs:costs.map(c=>c.io)},
+    {l:'保管費',                vs:costs.map(c=>c.stor)},
+    {l:'1ケース 合計',          vs:costs.map(c=>c.total),    grand:true},
+    {l:'1本あたり',             vs:costs.map(c=>c.total/24), grand:true},
+    {l:'月間総物流費',          vs:costs.map(c=>c.total*ms), grand:true},
+  ];
+  let th=`<tr><th style="text-align:left">費目</th>${WH.map(w=>`<th>${w.short}</th>`).join('')}</tr>`;
+  rows.forEach(row=>{
+    const minV=Math.min(...row.vs);
+    th+=`<tr${row.grand?' class="grand"':''}>
+      <td>${row.l}</td>
+      ${row.vs.map(val=>{
+        const cheap=Math.abs(val-minV)<0.05&&row.vs.filter(x=>Math.abs(x-minV)<0.05).length===1;
+        const ng=row.grand&&val>thresh&&row.l==='1ケース 合計';
+        return `<td class="${cheap?'tc':ng?'tn':''}">${row.grand?'¥'+fmt(Math.round(val)):'¥'+f2(val)}</td>`;
+      }).join('')}
+    </tr>`;
+  });
+  document.getElementById('dtbl').innerHTML=th;
+  const cheapIdx=totals.indexOf(minT);
+  const shipDiff=v('sh1')-v('sh0');
+  const okWh=costs.map((c,i)=>c.total<=thresh?WH[i].short:null).filter(Boolean);
+  let note=`月販 <span class="hl">${fmt(ms)}ケース</span>　最安: <span class="hl">${WH[cheapIdx].name}（¥${fmt(Math.round(minT))}/ケース・月間¥${fmt(Math.round(totals[cheapIdx]*ms))}）</span>。`;
+  note+=okWh.length?`閾値¥${thresh}以内: <span class="ok-c">${okWh.join('・')}</span>。`:`<span class="ng-c">3拠点とも閾値超過。</span>`;
+  note+=`　楽ロジ横持ち ¥${f2(rslTr)}/ケース（¥${fmt(v('tc0f'))}÷${fmt(v('tc0q'))}ケース）。`;
+  note+=`送料差: 日本郵便¥${v('sh0')} vs 佐川¥${v('sh1')} → <span class="${shipDiff>0?'warn-c':'ok-c'}">${shipDiff>0?'+':''}¥${shipDiff}/ケース</span>（月間¥${fmt(Math.abs(shipDiff)*ms)}差）。`;
+  note+=`楽ロジ保管費 ¥${f1(rslStor)}/ケース（${D}日滞留）。`;
+  document.getElementById('noteBox').innerHTML=note;
+}
+go();
+</script>
+</body>
+                                                                                                                    </html>

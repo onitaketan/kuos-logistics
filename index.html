@@ -119,18 +119,12 @@
     <h1>KUOS 倉庫別物流コスト比較ツール</h1>
     <p>楽ロジ（RSL）/ 三芳倉庫・本社 / 矢野倉庫　1ケースあたりコスト比較（税別）</p>
   </header>
+
   <div class="sec">1ケースあたりコスト 比較（税別）</div>
   <div class="wh-grid" id="whGrid"></div>
-  <div id="barWrap" style="margin-bottom:8px"></div>
-  <div class="note" id="noteBox">計算中…</div>
-  <hr>
-  <div class="sec">共通設定</div>
-  <div class="g-top">
-    <div class="card2"><label>月間販売数（ケース / 月）</label><input type="number" id="ms" value="10000" min="1" oninput="go()"></div>
-    <div class="card2"><label>判定閾値（円 / ケース・税別）</label><input type="number" id="thresh" value="850" oninput="go()"></div>
-    <div class="card2"><label>ケース寸法 L × W × H（cm）</label><div class="dim-row"><input type="number" id="dL" value="41" oninput="go()"><input type="number" id="dW" value="28" oninput="go()"><input type="number" id="dH" value="24" oninput="go()"></div></div>
-  </div>
-  <div class="card2" style="margin-bottom:14px">
+
+  <!-- 在庫滞留日数スライダー（比較カードの直下に移動） -->
+  <div class="card2" style="margin-bottom:14px;margin-top:14px">
     <label style="margin-bottom:8px">在庫滞留日数（全倉庫共通）</label>
     <div class="sl-row">
       <input type="range" id="dwell" min="1" max="45" step="1" value="10" oninput="go()">
@@ -138,6 +132,18 @@
     </div>
     <div class="sl-hint" id="slHint">—</div>
   </div>
+
+  <div id="barWrap" style="margin-bottom:8px"></div>
+  <div class="note" id="noteBox">計算中…</div>
+  <hr>
+
+  <div class="sec">共通設定</div>
+  <div class="g-top">
+    <div class="card2"><label>月間販売数（ケース / 月）</label><input type="number" id="ms" value="10000" min="1" oninput="go()"></div>
+    <div class="card2"><label>判定閾値（円 / ケース・税別）</label><input type="number" id="thresh" value="850" oninput="go()"></div>
+    <div class="card2"><label>ケース寸法 L × W × H（cm）</label><div class="dim-row"><input type="number" id="dL" value="41" oninput="go()"><input type="number" id="dW" value="28" oninput="go()"><input type="number" id="dH" value="24" oninput="go()"></div></div>
+  </div>
+
   <div class="sec">倉庫別コスト設定</div>
   <div class="g3-param">
     <div class="param-box">
@@ -216,6 +222,7 @@
       </div>
     </div>
   </div>
+
   <div class="sec">費用内訳（円 / ケース・税別）</div>
   <div class="card" style="overflow-x:auto">
     <table class="tbl" id="dtbl"></table>
@@ -224,9 +231,9 @@
 </div>
 <script>
 const WH=[
-  {name:'楽ロジ（RSL）',short:'楽ロジ',   color:'#3266ad'},
-  {name:'三芳 / 本社',  short:'三芳/本社', color:'#1d9e75'},
-  {name:'矢野倉庫',     short:'矢野倉庫',  color:'#ba7517'},
+  {name:'楽ロジ（RSL）',short:'楽ロジ',color:'#3266ad'},
+  {name:'三芳 / 本社',short:'三芳/本社',color:'#1d9e75'},
+  {name:'矢野倉庫',short:'矢野倉庫',color:'#ba7517'},
 ];
 const DOTS=['#555','#888780','#3266ad','#e27b39'];
 function v(id){return +document.getElementById(id).value||0}
@@ -259,9 +266,9 @@ function go(){
   document.getElementById('ib2calc').textContent='→ ¥'+f2(m2ib)+'/ケース';
   document.getElementById('storYNO').textContent='¥'+f2(m2st)+'/ケース（坪¥'+fmt(v('sf2t')>0?Math.round(v('sf2f')/v('sf2t')):0)+' × '+D+'日）';
   const costs=[
-    {inbound:rslTr, io:v('op0'), stor:rslStor, ship:v('sh0'), labels:['横持ち（¥'+fmt(v('tc0f'))+'/'+fmt(v('tc0q'))+'ケース）','作業料＋資材','保管費（体積）','日本郵便']},
-    {inbound:m1ib,  io:v('io1'), stor:m1st,    ship:v('sh1'), labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
-    {inbound:m2ib,  io:v('io2'), stor:m2st,    ship:v('sh2'), labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
+    {inbound:rslTr,io:v('op0'),stor:rslStor,ship:v('sh0'),labels:['横持ち（¥'+fmt(v('tc0f'))+'/'+fmt(v('tc0q'))+'ケース）','作業料＋資材','保管費（体積）','日本郵便']},
+    {inbound:m1ib,io:v('io1'),stor:m1st,ship:v('sh1'),labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
+    {inbound:m2ib,io:v('io2'),stor:m2st,ship:v('sh2'),labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
   ];
   costs.forEach(c=>{c.total=c.inbound+c.io+c.stor+c.ship});
   const totals=costs.map(c=>c.total);
@@ -317,13 +324,13 @@ function go(){
   });
   document.getElementById('barWrap').innerHTML=bh;
   const rows=[
-    {l:'出荷送料',              vs:costs.map(c=>c.ship)},
-    {l:'入庫 / 横持ち（按分）', vs:costs.map(c=>c.inbound)},
-    {l:'入出庫費 / 作業・資材', vs:costs.map(c=>c.io)},
-    {l:'保管費',                vs:costs.map(c=>c.stor)},
-    {l:'1ケース 合計',          vs:costs.map(c=>c.total),    grand:true},
-    {l:'1本あたり',             vs:costs.map(c=>c.total/24), grand:true},
-    {l:'月間総物流費',          vs:costs.map(c=>c.total*ms), grand:true},
+    {l:'出荷送料',vs:costs.map(c=>c.ship)},
+    {l:'入庫 / 横持ち（按分）',vs:costs.map(c=>c.inbound)},
+    {l:'入出庫費 / 作業・資材',vs:costs.map(c=>c.io)},
+    {l:'保管費',vs:costs.map(c=>c.stor)},
+    {l:'1ケース 合計',vs:costs.map(c=>c.total),grand:true},
+    {l:'1本あたり',vs:costs.map(c=>c.total/24),grand:true},
+    {l:'月間総物流費',vs:costs.map(c=>c.total*ms),grand:true},
   ];
   let th=`<tr><th style="text-align:left">費目</th>${WH.map(w=>`<th>${w.short}</th>`).join('')}</tr>`;
   rows.forEach(row=>{
@@ -351,4 +358,4 @@ function go(){
 go();
 </script>
 </body>
-                                                                                                                    </html>
+        </html>

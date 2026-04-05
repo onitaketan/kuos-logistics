@@ -143,25 +143,29 @@
     <div class="card2"><label>判定閾値（円 / ケース・税別）</label><input type="number" id="thresh" value="850" oninput="go()"></div>
     <div class="card2"><label>ケース寸法 L × W × H（cm）</label><div class="dim-row"><input type="number" id="dL" value="41" oninput="go()"><input type="number" id="dW" value="28" oninput="go()"><input type="number" id="dH" value="24" oninput="go()"></div></div>
   </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="card2"><label>パレット寸法 L × W（mm）</label><div class="dim-row"><input type="number" id="pL" value="1100" oninput="go()"><input type="number" id="pW" value="1100" oninput="go()"></div></div>
+    <div class="card2"><label>P / 坪（自動計算）</label><span class="calc-tag" id="ppTcalc">—</span><div style="font-size:11px;color:var(--text3);margin-top:4px">1坪 = 3.30579㎡ ÷ パレット面積</div></div>
+  </div>
 
   <div class="sec">倉庫別コスト設定</div>
   <div class="g3-param">
     <div class="param-box">
       <div class="param-title" style="color:var(--blue)">楽ロジ（RSL）</div>
       <div class="param-row">
-        <label>横持ち費（日田 → 楽ロジ）</label>
+        <label>横持ち費（日田 → 楽ロジ・税轼入力）</label>
         <div class="tsubo-g">
-          <div class="tf"><label>送料合計（円）</label><input type="number" id="tc0f" value="30000" oninput="go()"></div>
+          <div class="tf"><label>送料合計（税込・円）</label><input type="number" id="tc0f" value="30000" oninput="go()"></div>
           <div class="tf"><label>ケース数</label><input type="number" id="tc0q" value="960" oninput="go()"></div>
         </div>
         <span class="calc-tag" id="tc0calc">—</span>
       </div>
-      <div class="param-row"><label>出荷作業料 ＋ 資材（円 / ケース）</label><input type="number" id="op0" value="91" oninput="go()"></div>
+      <div class="param-row"><label>出荷作業料 ＋ 資朐（円 / ケース）</label><input type="number" id="op0" value="91" oninput="go()"></div>
       <div class="param-row">
         <label>出荷送料（RSL 全国一律）</label>
         <div class="ship-row"><span class="ship-lbl">日本郵便</span><input type="number" id="sh0" value="599" oninput="go()"><span class="ship-unit">円</span></div>
       </div>
-      <div class="param-row"><label>保管料（体積自動計算）</label><span class="calc-tag" id="storRSL">—</span></div>
+      <div class="param-row"><label>保管料（体稭自動計算）</label><span class="calc-tag" id="storRSL">—</span></div>
     </div>
     <div class="param-box">
       <div class="param-title" style="color:var(--teal)">三芳倉庫 / 本社</div>
@@ -184,10 +188,9 @@
           <div class="tf"><label>月額（円）</label><input type="number" id="sf1f" value="100000" oninput="go()"></div>
           <div class="tf"><label>坪数</label><input type="number" id="sf1t" value="100" oninput="go()"></div>
         </div>
-        <div class="tsubo-g3">
+        <div class="tsubo-g">
           <div class="tf"><label>ケース / 段</label><input type="number" id="cs1c" value="60" oninput="go()"></div>
           <div class="tf"><label>積み段数</label><input type="number" id="cs1s" value="3" oninput="go()"></div>
-          <div class="tf"><label>P / 坪</label><input type="number" id="pd1" value="2" oninput="go()"></div>
         </div>
         <span class="calc-tag" id="storMIY">—</span>
       </div>
@@ -213,10 +216,9 @@
           <div class="tf"><label>月額（円）</label><input type="number" id="sf2f" value="4500" oninput="go()"></div>
           <div class="tf"><label>坪数</label><input type="number" id="sf2t" value="1" oninput="go()"></div>
         </div>
-        <div class="tsubo-g3">
+        <div class="tsubo-g">
           <div class="tf"><label>ケース / 段</label><input type="number" id="cs2c" value="60" oninput="go()"></div>
           <div class="tf"><label>積み段数</label><input type="number" id="cs2s" value="3" oninput="go()"></div>
-          <div class="tf"><label>P / 坪</label><input type="number" id="pd2" value="2" oninput="go()"></div>
         </div>
         <span class="calc-tag" id="storYNO">—</span>
       </div>
@@ -227,6 +229,65 @@
   <div class="card" style="overflow-x:auto">
     <table class="tbl" id="dtbl"></table>
   </div>
+
+  <hr>
+  <div class="sec">福岡（扇橋）出荷　─　参考比較</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="wh-card">
+      <div class="wh-head" style="background:#8b5cf6">
+        <span class="wh-name">福岡（扇橋）</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.7)">関東出荷 参考</span>
+      </div>
+      <div class="wh-body">
+        <div class="cost-lbl">1ケースあたり物流費（税別）</div>
+        <div class="cost-big" id="fkCostBig">—</div>
+        <div id="fkVerdict"></div>
+        <div class="mb" id="fkBreakdown"></div>
+        <div class="per-unit" id="fkPerUnit"></div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">楽ロジ vs 扇橋</div>
+      <div id="fkCompare" style="font-size:13px;color:var(--text2);line-height:1.8"></div>
+      <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text3)" id="fkNote">
+        ※ 扇橋は支払い3営業日・横持ちコスト発生等の運用課題あり
+      </div>
+    </div>
+  </div>
+
+  <div class="param-box" style="margin-bottom:14px">
+    <div class="param-title" style="color:#8b5cf6">福岡（扇橋）コスト設定</div>
+    <div class="param-row">
+      <label>横持ち費（日田 → 扇橋・税輼入力）</label>
+      <div class="tsubo-g">
+        <div class="tf"><label>送料合計（税込・円）</label><input type="number" id="tcFf" value="30000" oninput="go()"></div>
+        <div class="tf"><label>ケース数</label><input type="number" id="tcFq" value="960" oninput="go()"></div>
+      </div>
+      <span class="calc-tag" id="tcFcalc">—</span>
+    </div>
+    <div class="g2">
+      <div class="param-row"><label>入庫費（円 / ケース）</label><input type="number" id="ioF" value="5" oninput="go()"></div>
+      <div class="param-row"><label>出庫費（出庫+伝発+伝票張り / ケース）</label><input type="number" id="offF" value="54" oninput="go()"></div>
+    </div>
+    <div class="param-row">
+      <label>出荷送料（佐川急便・税込入力 → 税別自動換算）</label>
+      <div class="ship-row"><span class="ship-lbl">佐川急便（税輼）</span><input type="number" id="shF" value="698" oninput="go()"><span class="ship-unit">円</span></div>
+      <span class="calc-tag" id="shFcalc">—</span>
+    </div>
+    <div class="param-row">
+      <label>保管費（坪ベース）</label>
+      <div class="tsubo-g">
+        <div class="tf"><label>月額（円）</label><input type="number" id="sfFf" value="4800" oninput="go()"></div>
+        <div class="tf"><label>坪数</label><input type="number" id="sfFt" value="1" oninput="go()"></div>
+      </div>
+      <div class="tsubo-g">
+        <div class="tf"><label>ケース / 段</label><input type="number" id="csFc" value="60" oninput="go()"></div>
+        <div class="tf"><label>積み段数</label><input type="number" id="csFs" value="3" oninput="go()"></div>
+      </div>
+      <span class="calc-tag" id="storFK">—</span>
+    </div>
+  </div>
+
   <footer>KUOS 物流コスト比較ツール　─　数値はすべて税別・概算です</footer>
 </div>
 <script>
@@ -250,23 +311,30 @@ function go(){
   const vol=v('dL')*v('dW')*v('dH');
   const storMonth=7.5*(vol/1000);
   const daily=ms/30;
+  // パレット→坪 自動計算
+  const palL=v('pL')/1000||1.1, palW=v('pW')/1000||1.1;
+  const palArea=palL*palW;
+  const TSUBO=3.30579;
+  const ppT=Math.max(1,Math.floor(TSUBO/palArea));
+  document.getElementById('ppTcalc').textContent=f2(palArea)+'㎡/P → '+ppT+' P/坪（'+f2(TSUBO)+'㎡ ÷ '+f2(palArea)+'㎡ = '+f2(TSUBO/palArea)+'）';
   document.getElementById('dwellOut').textContent=D;
-  const rslTr=v('tc0q')>0?v('tc0f')/v('tc0q'):0;
-  document.getElementById('tc0calc').textContent='→ ¥'+f2(rslTr)+'/ケース（固定按分）';
+  const rslTrGross=v('tc0q')>0?v('tc0f')/v('tc0q'):0;
+  const rslTr=Math.round(rslTrGross/1.1*100)/100;
+  document.getElementById('tc0calc').textContent='税込¥'+f2(rslTrGross)+' → 税別¥'+f2(rslTr)+'/ケース';
   const rslStor=storMonth*D/30;
-  const rslQ=Math.max(1,Math.round(daily*D*2));
-  document.getElementById('storRSL').textContent='¥'+f1(rslStor)+'/ケース（'+D+'日 | 体積'+fmt(vol)+'cm³）';
+  const rslQ=Math.max(1,Math.round(daily*D));
+  document.getElementById('storRSL').textContent='¥'+f1(rslStor)+'/ケース（'+D+'日 | 体稭'+fmt(vol)+'cm³）';
   document.getElementById('slHint').textContent='楽ロジ: 滞留'+D+'日 → 適正持込 '+fmt(rslQ)+'ケース / 月'+f1(ms/rslQ)+'回 | 月販'+fmt(ms)+'ケース';
   const m1ib=v('ib1q')>0?v('ib1f')/v('ib1q'):0;
-  const m1st=storPerCase(D,v('sf1f'),v('sf1t'),v('cs1c'),v('cs1s'),v('pd1'));
+  const m1st=storPerCase(D,v('sf1f'),v('sf1t'),v('cs1c'),v('cs1s'),ppT);
   document.getElementById('ib1calc').textContent='→ ¥'+f2(m1ib)+'/ケース';
   document.getElementById('storMIY').textContent='¥'+f2(m1st)+'/ケース（坪¥'+fmt(v('sf1t')>0?Math.round(v('sf1f')/v('sf1t')):0)+' × '+D+'日）';
   const m2ib=v('ib2q')>0?v('ib2f')/v('ib2q'):0;
-  const m2st=storPerCase(D,v('sf2f'),v('sf2t'),v('cs2c'),v('cs2s'),v('pd2'));
+  const m2st=storPerCase(D,v('sf2f'),v('sf2t'),v('cs2c'),v('cs2s'),ppT);
   document.getElementById('ib2calc').textContent='→ ¥'+f2(m2ib)+'/ケース';
   document.getElementById('storYNO').textContent='¥'+f2(m2st)+'/ケース（坪¥'+fmt(v('sf2t')>0?Math.round(v('sf2f')/v('sf2t')):0)+' × '+D+'日）';
   const costs=[
-    {inbound:rslTr,io:v('op0'),stor:rslStor,ship:v('sh0'),labels:['横持ち（¥'+fmt(v('tc0f'))+'/'+fmt(v('tc0q'))+'ケース）','作業料＋資材','保管費（体積）','日本郵便']},
+    {inbound:rslTr,io:v('op0'),stor:rslStor,ship:v('sh0'),labels:['横持ち（税別 ¥'+f2(rslTr)+'/ケース）','作業料＋資材','保管費（体積）','日本郵便']},
     {inbound:m1ib,io:v('io1'),stor:m1st,ship:v('sh1'),labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
     {inbound:m2ib,io:v('io2'),stor:m2st,ship:v('sh2'),labels:['入庫送料按分','入出庫費','保管費（坪）','佐川急便 関東']},
   ];
@@ -326,7 +394,7 @@ function go(){
   const rows=[
     {l:'出荷送料',vs:costs.map(c=>c.ship)},
     {l:'入庫 / 横持ち（按分）',vs:costs.map(c=>c.inbound)},
-    {l:'入出庫費 / 作業・資材',vs:costs.map(c=>c.io)},
+    {l:'入出庫費 / 作業・資朐',vs:costs.map(c=>c.io)},
     {l:'保管費',vs:costs.map(c=>c.stor)},
     {l:'1ケース 合計',vs:costs.map(c=>c.total),grand:true},
     {l:'1本あたり',vs:costs.map(c=>c.total/24),grand:true},
@@ -349,11 +417,53 @@ function go(){
   const shipDiff=v('sh1')-v('sh0');
   const okWh=costs.map((c,i)=>c.total<=thresh?WH[i].short:null).filter(Boolean);
   let note=`月販 <span class="hl">${fmt(ms)}ケース</span>　最安: <span class="hl">${WH[cheapIdx].name}（¥${fmt(Math.round(minT))}/ケース・月間¥${fmt(Math.round(totals[cheapIdx]*ms))}）</span>。`;
-  note+=okWh.length?`閾値¥${thresh}以内: <span class="ok-c">${okWh.join('・')}</span>。`:`<span class="ng-c">3拠点とも閾値超過。</span>`;
-  note+=`　楽ロジ横持ち ¥${f2(rslTr)}/ケース（¥${fmt(v('tc0f'))}÷${fmt(v('tc0q'))}ケース）。`;
+  note+=okWh.length?`閾値¥${thresh}以内: <span class="ok-c">${okWh.join('・')}</span>。`:`<span class="ng-c">3拨点とも閾値超過。</span>`;
+  note+=`　楽ロジ横持ち 税別¥${f2(rslTr)}/ケース（税込¥${fmt(v('tc0f'))}÷${fmt(v('tc0q'))}ケース÷1.1）。`;
   note+=`送料差: 日本郵便¥${v('sh0')} vs 佐川¥${v('sh1')} → <span class="${shipDiff>0?'warn-c':'ok-c'}">${shipDiff>0?'+':''}¥${shipDiff}/ケース</span>（月間¥${fmt(Math.abs(shipDiff)*ms)}差）。`;
   note+=`楽ロジ保管費 ¥${f1(rslStor)}/ケース（${D}日滞留）。`;
   document.getElementById('noteBox').innerHTML=note;
+
+  // === 福岡（扇橋）計算 ===
+  const fkTrGross=v('tcFq')>0?v('tcFf')/v('tcFq'):0;
+  const fkTr=Math.round(fkTrGross/1.1*100)/100;
+  document.getElementById('tcFcalc').textContent='税込¥'+f2(fkTrGross)+' → 税別¥'+f2(fkTr)+'/ケース';
+  const fkShipTax=v('shF');
+  const fkShip=Math.round(fkShipTax/1.1*100)/100;
+  document.getElementById('shFcalc').textContent='税別換算 → ¥'+f2(fkShip)+'/ケース';
+  const fkIo=v('ioF');
+  const fkOff=v('offF');
+  const fkSt=storPerCase(D,v('sfFf'),v('sfFt'),v('csFc'),v('csFs'),ppT);
+  document.getElementById('storFK').textContent='¥'+f2(fkSt)+'/ケース（坪¥'+fmt(v('sfFt')>0?Math.round(v('sfFf')/v('sfFt')):0)+' × '+D+'日）';
+  const fkTotal=fkShip+fkTr+fkIo+fkOff+fkSt;
+  const fkOk=fkTotal<=thresh;
+  const fkDiff=Math.abs(fkTotal-thresh);
+  document.getElementById('fkCostBig').innerHTML='¥'+fmt(Math.round(fkTotal));
+  document.getElementById('fkCostBig').style.color=fkOk?'var(--text)':'var(--ng-text)';
+  document.getElementById('fkVerdict').innerHTML='<div class="verdict '+(fkOk?'v-ok':'v-ng')+'">'+(fkOk?'✓ 閾値内　余裕¥'+fmt(Math.round(fkDiff)):'✗ 超過 +¥'+fmt(Math.round(fkDiff)))+'</div>';
+  const fkItems=[
+    {lbl:'佐川急便（税別換算）',val:fkShip,dot:'#555'},
+    {lbl:'入庫費',val:fkIo,dot:'#888780'},
+    {lbl:'横持ち（税別 ¥'+f2(fkTr)+'/ケース）',val:fkTr,dot:'#8b5cf6'},
+    {lbl:'出庫費（出庫+伝発+伝票張り）',val:fkOff,dot:'#b388ff'},
+    {lbl:'保管費（坪）',val:fkSt,dot:'#e27b39'},
+  ];
+  let fkHtml=fkItems.map(it=>`<div class="mb-r"><div class="dot" style="background:${it.dot}"></div><div class="mb-l">${it.lbl}</div><div class="mb-v">¥${f2(it.val)}</div></div>`).join('');
+  fkHtml+='<div class="mb-tot"><span>合計</span><span>¥'+fmt(Math.round(fkTotal))+'</span></div>';
+  document.getElementById('fkBreakdown').innerHTML=fkHtml;
+  document.getElementById('fkPerUnit').innerHTML='1本 ¥'+f1(fkTotal/24)+'　|　月間総額 ¥'+fmt(Math.round(fkTotal*ms));
+
+  // 楽ロジ vs 扇橋 比較
+  const rslTotal=costs[0].total;
+  const diffRslFk=rslTotal-fkTotal;
+  const diffSign=diffRslFk>0?'+':'';
+  const cheaper=diffRslFk>0?'扇橋':'楽ロジ';
+  let cmp='';
+  cmp+='楽ロジ: <span class="hl">¥'+fmt(Math.round(rslTotal))+'</span>/ケース<br>';
+  cmp+='扇橋: <span class="hl">¥'+fmt(Math.round(fkTotal))+'</span>/ケース<br>';
+  cmp+='差額: <span class="'+(diffRslFk>0?'warn-c':'ok-c')+'">'+diffSign+'¥'+fmt(Math.round(Math.abs(diffRslFk)))+'/ケース</span><br>';
+  cmp+='月間差額: <span class="'+(diffRslFk>0?'warn-c':'ok-c')+'">'+diffSign+'¥'+fmt(Math.round(Math.abs(diffRslFk)*ms))+'</span><br>';
+  cmp+='<span style="font-size:12px;color:var(--text3)">→ ケース単価は<strong>'+cheaper+'</strong>が安い</span>';
+  document.getElementById('fkCompare').innerHTML=cmp;
 }
 go();
 </script>
